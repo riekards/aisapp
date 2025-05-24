@@ -1,0 +1,14 @@
+# Python
+venv/
+env/
+.env
+__pycache__/
+*.pyc
+
+# Dependencies
+lib/
+node_modules/
+
+# OS/Editor files
+.DS_Store
+.vscode/

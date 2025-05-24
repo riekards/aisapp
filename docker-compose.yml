@@ -1,0 +1,13 @@
+services:
+  ai:
+    build: .
+    container_name: local-ai
+    volumes:
+      - ./:/usr/src/app
+      - ./backups:/usr/src/app/backups
+    environment:
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - DISPLAY=host.docker.internal:0.0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: python -m app.main
