@@ -41,15 +41,15 @@ def main():
         "MlpPolicy",
         vec_env,
         verbose=1,
-        learning_rate=5e-4,
-        n_steps=800,       # rollout length per env
+        learning_rate=3e-4,
+        n_steps=2048,  # rollout length per env
         batch_size=64,
-        n_epochs=5,
-        ent_coef=0.05,
-        device="cuda",
+        n_epochs=10,
+        ent_coef=0.0,
+        device="auto",
         clip_range=0.2,
-        gamma=0.995,
-        gae_lambda=0.9,
+        gamma=0.99,
+        gae_lambda=0.95,
     )
 
     timesteps_per_iteration = 100000
