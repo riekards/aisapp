@@ -53,7 +53,7 @@ def main():
     )
 
     timesteps_per_iteration = 100000
-    max_iterations = 100
+    max_iterations = 1
 
     # ensure the dir exists
     os.makedirs("checkpoints", exist_ok=True)
