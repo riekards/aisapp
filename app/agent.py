@@ -24,6 +24,7 @@ class Agent:
                     "@@ -0,0 +1 @@\n"
                     " # no-op patch (stub)\n"
                 )
+            self.ask_llm = stub_ask_llm
         self.memory = Memory("memory.db")
         self.snapshot = SnapshotManager("app", "backups")
         from app.self_improve import SelfImproveEngine
