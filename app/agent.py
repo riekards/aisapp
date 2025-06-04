@@ -80,15 +80,17 @@ class Agent:
 
         # Self-improve trigger
         if text.lower() == "self improve":
-            success = self.improver.run_cycle()
+            result = self.improver.run_cycle()
             if self.rl_model is not None:
                 obs = [getattr(self, "last_reward", 0),
                        len(self.memory.list_features())]
                 action, _ = self.rl_model.predict(obs, deterministic=True)
                 self.temperature = float(action[0])
-            success = self.improver.run_cycle()
-            return ("Self-improvement successful." if success
-                    else "Self-improvement failed; rolled back.")
+            result = self.improver.run_cycle()
+            return (
+                "Self-improvement successful." if result in ("success", "partial")
+                else "Self-improvement failed; rolled back."
+            )
 
         # Normal chat
         response = self.ask_llm(text)
