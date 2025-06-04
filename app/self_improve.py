@@ -121,3 +121,24 @@ class SelfImproveEngine:
     def _restore(self, backup_path):
         shutil.rmtree('app')
         shutil.copytree(backup_path, 'app')
+
+    def _apply_patch(self, diff_text: str) -> bool:
+        """Apply a unified diff using the ``patch`` command."""
+        proc = subprocess.run([
+            "patch",
+            "-p1",
+        ], input=diff_text, text=True, capture_output=True)
+        if proc.returncode != 0:
+            print("[SelfImprove] Patch failed:\n", proc.stdout, proc.stderr)
+            return False
+        return True
+
+    def _run_tests(self):
+        """Run ``self.test_cmd`` and return the CompletedProcess."""
+        return subprocess.run(
+            self.test_cmd,
+            shell=True,
+            text=True,
+            capture_output=True,
+        )
+

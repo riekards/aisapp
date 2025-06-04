@@ -12,18 +12,10 @@ MODEL_PATH = "ppo_self_improve.zip"
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
 class Agent:
-    def __init__(self, use_real_llm: bool = False, test_cmd: str = "pytest"):
+    def __init__(self, use_real_llm: bool = True, test_cmd: str = "pytest"):
         self.use_real_llm = use_real_llm
         if not self.use_real_llm:
-            def stub_ask_llm(prompt: str) -> str:
-                return (
-                    "diff --git a/app/__init__.py b/app/__init__.py\n"
-                    "index e69de29..e69de29 100644\n"
-                    "--- a/app/__init__.py\n"
-                    "+++ b/app/__init__.py\n"
-                    "@@ -0,0 +1 @@\n"
-                    " # no-op patch (stub)\n"
-                )
+            self.ask_llm = lambda prompt: "*** Begin patch \n*** End patch\n"
         self.memory = Memory("memory.db")
         self.snapshot = SnapshotManager("app", "backups")
         from app.self_improve import SelfImproveEngine
@@ -61,9 +53,12 @@ class Agent:
         self.memory.save_message("user", text)
 
         # —— RL policy picks a temperature before any action —— #
-        obs, _ = self.rl_env.reset()                  # get fresh obs [last_reward, pending]
-        action, _ = self._policy.predict(obs, deterministic=False)
-        self.temperature = float(action[0])
+        obs, _ = self.rl_env.reset()  # get fresh obs [last_reward, pending]
+        if self.policy is not None:
+            action, _ = self.policy.predict(obs, deterministic=False)
+            self.temperature = float(action[0])
+        else:
+            self.temperature = 0.5
         print(f"[RL] Chosen temperature: {self.temperature:.3f}")        
 
         # —— now your existing logic —— #
