@@ -17,6 +17,7 @@ node_modules/
 *.log
 *.csv
 *.zip
+!ppo_self_improve.zip
 
 /backups/
 /venv310/
