@@ -12,3 +12,12 @@ node_modules/
 # OS/Editor files
 .DS_Store
 .vscode/
+
+# Logs
+*.log
+*.csv
+*.zip
+
+/backups/
+/venv310/
+/checkpoints/
