@@ -99,25 +99,40 @@ class SelfImproveEngine:
         out, _ = dry.communicate(diff_text)
         if dry.returncode != 0:
             print("[SelfImprove] Patch dry-run failed:\n", out)
+            self._restore(backup_path)
             return False
 
         # 8) Apply patch
         try:
             patch_result = self._apply_patch(diff_text)
             if not patch_result:
+                self._restore(backup_path)
                 return 'Fail'
 
             # 9) Run tests
             test_result = self._run_tests()
             if test_result.returncode == 0:
                 return 'Success'
-            elif test_result.returncode < 2:
-                return 'Partial'
-            return 'Fail'
+            else:
+                self._restore(backup_path)
+                return 'Fail'
         except Exception as e:
             print(f"Error in improvement cycle: {e}")
+            self._restore(backup_path)
             return 'Fail'
 
     def _restore(self, backup_path):
         shutil.rmtree('app')
         shutil.copytree(backup_path, 'app')
+
+    def _apply_patch(self, diff_text):
+        strip = 1
+        proc = subprocess.Popen(["patch", f"-p{strip}"], stdin=subprocess.PIPE, text=True)
+        out, _ = proc.communicate(diff_text)
+        if proc.returncode != 0:
+            print("[SelfImprove] Patch failed:\n", out)
+            return False
+        return True
+
+    def _run_tests(self):
+        return subprocess.run(self.test_cmd.split(), text=True)

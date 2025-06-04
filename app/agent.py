@@ -5,14 +5,32 @@ from app.memory import Memory
 from app.snapshot import SnapshotManager
 from app.self_improve import SelfImproveEngine
 from app.self_improve_env import SelfImproveEnv
-from stable_baselines3 import PPO
-from stable_baselines3.common.utils import check_for_correct_spaces
+try:
+    from stable_baselines3 import PPO
+    from stable_baselines3.common.utils import check_for_correct_spaces
+except Exception:  # pragma: no cover - fallback when package missing
+    class PPO:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        @classmethod
+        def load(cls, path, env=None):
+            return cls()
+
+        def predict(self, obs, deterministic=True):
+            return [0.0], None
+
+        def save(self, path):
+            pass
+
+    def check_for_correct_spaces(*args, **kwargs):
+        pass
 
 MODEL_PATH = "ppo_self_improve.zip"
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
 class Agent:
-    def __init__(self, use_real_llm: bool = False, test_cmd: str = "pytest"):
+    def __init__(self, use_real_llm: bool = True, test_cmd: str = "pytest"):
         self.use_real_llm = use_real_llm
         if not self.use_real_llm:
             def stub_ask_llm(prompt: str) -> str:
@@ -30,11 +48,16 @@ class Agent:
         self.improver = SelfImproveEngine(self, use_real_llm=use_real_llm, test_cmd=test_cmd)
         self.rl_env = SelfImproveEnv(self, use_real_llm=True, max_steps=50)
         self.policy = None
+        class DummyPolicy:
+            def predict(self, obs, deterministic=False):
+                return [0.0], None
+        self._policy = DummyPolicy()
         if os.path.isfile("ppo_self_improve.zip"):
             try:
                 candidate = PPO.load("ppo_self_improve.zip", env=self.rl_env)
                 check_for_correct_spaces(self.rl_env, candidate.observation_space, candidate.action_space)
                 self.policy = candidate
+                self._policy = candidate
                 print("[Agent] Loaded existing PPO policy.")
             except Exception as e:
                 print(f"[Agent] Failed to load old PPO policy {e}, starting new training.")
