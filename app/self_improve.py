@@ -105,18 +105,18 @@ class SelfImproveEngine:
         try:
             patch_result = self._apply_patch(diff_text)
             if not patch_result:
-                return 'Fail'
+                return 'fail'
 
             # 9) Run tests
             test_result = self._run_tests()
             if test_result.returncode == 0:
-                return 'Success'
+                return 'success'
             elif test_result.returncode < 2:
-                return 'Partial'
-            return 'Fail'
+                return 'partial'
+            return 'fail'
         except Exception as e:
             print(f"Error in improvement cycle: {e}")
-            return 'Fail'
+            return 'fail'
 
     def _restore(self, backup_path):
         shutil.rmtree('app')

@@ -39,7 +39,7 @@ def test_self_improve_revert(tmp_path, simple_app):
     os.makedirs("app", exist_ok=True)
     shutil.copytree(os.path.join(simple_app, "app"), "app", dirs_exist_ok=True)
     # No tests exist, pytest will halt with exit code != 0
-    success = engine.run_cycle()
-    assert not success
+    result = engine.run_cycle()
+    assert result is False or result == 'fail'
     # file.txt should still contain "A"
     assert open("app/file.txt").read().strip() == "A"
