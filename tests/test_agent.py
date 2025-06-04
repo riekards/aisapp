@@ -6,7 +6,9 @@ from app.agent import Agent
 
 @pytest.fixture
 def agent():
-    return Agent()
+    # use_real_llm=True to ensure ask_llm calls network layer,
+    # which will be mocked during tests
+    return Agent(use_real_llm=True)
 
 def make_response(content_lines, done=True):
     """Helper to simulate streaming lines from requests."""
