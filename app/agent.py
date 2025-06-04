@@ -61,10 +61,13 @@ class Agent:
         self.memory.save_message("user", text)
 
         # —— RL policy picks a temperature before any action —— #
-        obs, _ = self.rl_env.reset()                  # get fresh obs [last_reward, pending]
-        action, _ = self._policy.predict(obs, deterministic=False)
-        self.temperature = float(action[0])
-        print(f"[RL] Chosen temperature: {self.temperature:.3f}")        
+        obs, _ = self.rl_env.reset()  # get fresh obs [last_reward, pending]
+        if self.policy is not None:
+            action, _ = self.policy.predict(obs, deterministic=False)
+            self.temperature = float(action[0])
+            print(f"[RL] Chosen temperature: {self.temperature:.3f}")
+        else:
+            self.temperature = 0.5
 
         # —— now your existing logic —— #
         # Detect feature requests
@@ -92,8 +95,6 @@ class Agent:
         return response
     
     def ask_llm(self, prompt):
-        if not self.use_real_llm:
-            return "*** Begin patch \n*** End patch\n"
         # 1) Read in all your existing Python code under app/ as context
         code_context = []
         for dirpath, _, files in os.walk('app'):
@@ -116,8 +117,13 @@ class Agent:
 
         # 3) Call the LLM
         payload = {"model": "mistral", "messages": [{"role": "user", "content": full_prompt}]}
-        r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, stream=True)
-        r.raise_for_status()
+        try:
+            r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, stream=True)
+            r.raise_for_status()
+        except Exception:
+            if not self.use_real_llm:
+                return "*** Begin patch \n*** End patch\n"
+            raise
 
         # 4) Stream-assemble the response, handling different signatures of iter_lines()
         collected = []
