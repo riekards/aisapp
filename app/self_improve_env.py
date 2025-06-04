@@ -6,10 +6,12 @@ from gymnasium import spaces
 class SelfImproveEnv(gym.Env):
     """
     Gymnasium environment wrapping the self-improvement loop.
-    Action: array([temperature]) in [0.0,1.0]
-    Observation: [last_reward, pending_features_count]
-    Reward: +1 if patch applied successfully, -1 otherwise.
-    Episodes last for `max_steps` steps.
+    Action: ``array([temperature])`` in ``[0.0, 1.0]``.
+    Observation: ``[last_reward, pending_features_count, progress]`` where
+    ``progress`` is the fraction of steps completed in the current episode
+    (`step_count / max_steps`).
+    Reward: ``+1`` if a patch is applied successfully, ``-1`` otherwise.
+    Episodes last for ``max_steps`` steps.
     """
     metadata = {'render_modes': ['human']}
 
@@ -23,7 +25,7 @@ class SelfImproveEnv(gym.Env):
         self.step_count = 0
         self.warmup_episodes = warmup_episodes
 
-        # Observation: last_reward, pending_features_count
+        # Observation: last_reward, pending_features_count, progress
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32)
         # Action: temperature in [0,1]
         self.action_space = spaces.Box(
@@ -37,9 +39,11 @@ class SelfImproveEnv(gym.Env):
         self.step_count = 0
         self.current_episode += 1
 
-        obs = np.array([self.last_reward, self.pending, self.step_count], dtype=np.float32)
         progress = self.step_count / self.max_steps
-        obs = np.array([self.last_reward, self.pending, progress], dtype=np.float32)
+        obs = np.array(
+            [self.last_reward, self.pending, progress],
+            dtype=np.float32,
+        )
         info = {}
         return obs, info
 
@@ -80,9 +84,10 @@ class SelfImproveEnv(gym.Env):
         self.pending     = len(self.agent.get_features())
 
         # 6) Build new observation
+        progress = self.step_count / self.max_steps
         obs = np.array(
-            [self.last_reward, self.pending, self.step_count],
-            dtype=np.float32
+            [self.last_reward, self.pending, progress],
+            dtype=np.float32,
         )
 
         # 7) Return in Gymnasium v0.26+ signature
