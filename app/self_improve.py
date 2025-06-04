@@ -105,19 +105,47 @@ class SelfImproveEngine:
         try:
             patch_result = self._apply_patch(diff_text)
             if not patch_result:
-                return 'Fail'
+                self._restore(backup_path)
+                return 'fail'
 
             # 9) Run tests
             test_result = self._run_tests()
             if test_result.returncode == 0:
-                return 'Success'
+                return 'success'
             elif test_result.returncode < 2:
-                return 'Partial'
-            return 'Fail'
+                return 'partial'
+            else:
+                self._restore(backup_path)
+                return 'fail'
         except Exception as e:
             print(f"Error in improvement cycle: {e}")
-            return 'Fail'
+            self._restore(backup_path)
+            return 'fail'
 
     def _restore(self, backup_path):
         shutil.rmtree('app')
         shutil.copytree(backup_path, 'app')
+
+    def _apply_patch(self, diff_text: str) -> bool:
+        """Apply a unified diff using the patch command."""
+        proc = subprocess.Popen(
+            ["patch", "-p1"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        out, _ = proc.communicate(diff_text)
+        if proc.returncode != 0:
+            print("[SelfImprove] Patch failed:\n", out)
+            return False
+        return True
+
+    def _run_tests(self):
+        """Run the configured test command."""
+        return subprocess.run(
+            self.test_cmd,
+            shell=True,
+            text=True,
+            capture_output=True,
+        )
