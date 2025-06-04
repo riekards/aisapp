@@ -17,7 +17,9 @@ class SelfImproveEngine:
         if not self.skip_backups:
             backup_path = self.snapshot.create()
         else:
-            backup_path = self.snapshot.get_latest() or self.snapshot.create()
+            backup_path = self.snapshot.get_latest()
+            if backup_path is None:
+                backup_path = self.snapshot.create()
 
         # 2) Collect code context and file list
         code_snippets = []

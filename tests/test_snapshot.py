@@ -25,3 +25,20 @@ def test_snapshot_and_restore(tmp_path):
     shutil.rmtree(str(app_dir))
     shutil.copytree(snap, str(app_dir))
     assert (app_dir / "dummy.txt").read_text() == "version1"
+
+
+def test_get_latest(tmp_path):
+    app_dir = tmp_path / "app"
+    backup_dir = tmp_path / "backups"
+    app_dir.mkdir()
+    (app_dir / "a.txt").write_text("v1")
+    sm = SnapshotManager(str(app_dir), str(backup_dir))
+
+    assert sm.get_latest() is None
+
+    first = sm.create()
+    (app_dir / "a.txt").write_text("v2")
+    second = sm.create()
+
+    latest = sm.get_latest()
+    assert latest == second

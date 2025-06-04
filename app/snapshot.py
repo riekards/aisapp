@@ -24,6 +24,18 @@ class SnapshotManager:
         shutil.copytree(self.src_dir, dst)
         return dst
 
+    def get_latest(self) -> str | None:
+        """Return the most recently created snapshot directory or None."""
+        candidates = []
+        for name in os.listdir(self.backup_dir):
+            path = os.path.join(self.backup_dir, name)
+            if os.path.isdir(path) and name.startswith("snapshot_"):
+                candidates.append(path)
+        if not candidates:
+            return None
+        candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        return candidates[0]
+
     def restore(self, snapshot_path: str):
         """
         Restore the src_dir from a given snapshot folder.
