@@ -1,0 +1,2 @@
+trainer:
+  self_improve_threshold: 100
