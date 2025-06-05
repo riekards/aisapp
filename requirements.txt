@@ -8,3 +8,5 @@ stable_baselines3>=2.0
 gym>=0.26
 torch>=1.12
 shimmy>=2.0
+apscheduler
+pgsql
