@@ -1,0 +1,6 @@
+trainer:
+  batch_size: 32
+  learning_rate: 1e-4
+  num_epochs: 5
+  self_improve_threshold: 100
+  self_improve_interval: 60   # New: minutes between periodic fine-tunes
