@@ -1,0 +1,5 @@
+trainer:
+  batch_size: 32
+  learning_rate: 1e-4
+  num_epochs: 5
+  self_improve_threshold: 100  # New: how many memory entries before auto fine-tune
